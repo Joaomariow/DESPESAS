@@ -251,7 +251,33 @@
     <footer>Dados salvos no navegador · Finanças do Casal</footer>
   </div>
 
-  <script>
+    <script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  getDocs,
+  deleteDoc,
+  doc
+} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAnAxnkCbGxzYCxULthUtOLsnLfJkRGbVk",
+  authDomain: "financas-do-casal-ee03b.firebaseapp.com",
+  projectId: "financas-do-casal-ee03b",
+  storageBucket: "financas-do-casal-ee03b.firebasestorage.app",
+  messagingSenderId: "567025506135",
+  appId: "1:567025506135:web:a0ce262c42d61f792f1012",
+  measurementId: "G-CK7Q14EV8T"
+};
+
+const app = initializeApp(firebaseConfig);
+
+const db = getFirestore(app);
+
     const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
     const PESSOAS = [
       { key: 'João Mario',      label: 'João Mario',      cls: 'joao' },
@@ -259,21 +285,37 @@
       { key: 'Casal',           label: 'Casal',           cls: 'casal' },
     ];
 
-    let now = new Date(), curYear = now.getFullYear(), curMonth = now.getMonth();
+let now = new Date(), curYear = now.getFullYear(), curMonth = now.getMonth();
 
-    function monthKey(y,m){ return y+'-'+String(m).padStart(2,'0'); }
-    function loadData(){ try{ return JSON.parse(localStorage.getItem('fc_txs')||'{}'); }catch(e){ return {}; } }
-    function saveData(d){ localStorage.setItem('fc_txs',JSON.stringify(d)); }
-    function getMonthData(){ let k=monthKey(curYear,curMonth),all=loadData(); if(!all[k])all[k]=[]; return all[k]; }
-    function changeMonth(d){ curMonth+=d; if(curMonth<0){curMonth=11;curYear--;} if(curMonth>11){curMonth=0;curYear++;} render(); }
-    function fmt(v){ return 'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
-    function fmtShort(v){ return fmt(v); }
+let txs = [];
+
+function monthKey(y,m){ return y+'-'+String(m).padStart(2,'0'); }
+
+async function loadTransactions(){
+  txs = [];
+
+  const querySnapshot = await getDocs(collection(db, "transacoes"));
+
+  querySnapshot.forEach((docItem) => {
+    txs.push({
+      id: docItem.id,
+      ...docItem.data()
+    });
+  });
+
+  render();
+}
+
+function changeMonth(d){ curMonth+=d; if(curMonth<0){curMonth=11;curYear--;} if(curMonth>11){curMonth=0;curYear++;} render(); }
+function fmt(v){ return 'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmtShort(v){ return fmt(v); }
 
     function render(){
-      document.getElementById('month-label').textContent = MONTHS[curMonth]+' '+curYear;
-      const txs = getMonthData();
-      const income = txs.filter(t=>t.type==='income').reduce((s,t)=>s+t.val,0);
-      const expense = txs.filter(t=>t.type==='expense').reduce((s,t)=>s+t.val,0);
+  document.getElementById('month-label').textContent = MONTHS[curMonth]+' '+curYear;
+  const currentKey = monthKey(curYear, curMonth);
+  const monthTxs = txs.filter(t => t.monthKey === currentKey);
+      const income = monthTxs.filter(t=>t.type==='income').reduce((s,t)=>s+t.val,0);
+const expense = monthTxs.filter(t=>t.type==='expense').reduce((s,t)=>s+t.val,0);
       const balance = income - expense;
       const savingRate = income>0 ? Math.round((balance/income)*100) : 0;
 
@@ -293,17 +335,17 @@
   <div class="metric gold"><div class="metric-label">Saldo</div><div class="metric-value gold">${fmtShort(balance)}</div></div>
 `;
 
-      document.getElementById('tx-count').textContent = txs.length+(txs.length===1?' registro':' registros');
+      document.getElementById('tx-count').textContent = monthTxs.length+(monthTxs.length===1?' registro':' registros');
       const txList = document.getElementById('tx-list');
-      txList.innerHTML = txs.length===0
+      txList.innerHTML = monthTxs.length===0
         ? '<li class="tx-empty">Nenhuma transação neste mês</li>'
-        : txs.slice().reverse().map((t,ri)=>{
+        : monthTxs.slice().reverse().map((t,ri)=>{
             const i=txs.length-1-ri;
             return `<li class="tx-item">
               <div class="tx-dot ${t.type}"></div>
               <div class="tx-info"><div class="tx-desc">${t.desc}</div><div class="tx-who">${t.who}</div></div>
               <div class="tx-amount ${t.type}">${t.type==='income'?'+':'−'}${fmt(t.val)}</div>
-              <button class="del-btn" onclick="delTx(${i})" aria-label="Remover">✕</button>
+              <button class="del-btn" onclick="delTx('${t.id}')" aria-label="Remover">✕</button>
             </li>`;
           }).join('');
 
@@ -331,7 +373,7 @@
       }).join('');
     }
 
-    function addTx(){
+    async function addTx(){
 
   const desc = document.getElementById('tx-desc').value.trim();
   const val = parseFloat(document.getElementById('tx-val').value);
@@ -344,9 +386,6 @@
     return;
   }
 
-  const all = loadData();
-
-  // Parcelamento
   if(type === 'expense' && installments > 1){
 
     const installmentValue = Number((val / installments).toFixed(2));
@@ -361,53 +400,45 @@
         year++;
       }
 
-      const k = monthKey(year, month);
-
-      if(!all[k]){
-        all[k] = [];
-      }
-
-      all[k].push({
+      await addDoc(collection(db, "transacoes"), {
         desc: `${desc} (${i + 1}/${installments})`,
         val: installmentValue,
         type: 'expense',
         who,
-        installment: true
+        monthKey: monthKey(year, month)
       });
     }
 
   } else {
 
-    const k = monthKey(curYear, curMonth);
-
-    if(!all[k]){
-      all[k] = [];
-    }
-
-    all[k].push({
+    await addDoc(collection(db, "transacoes"), {
       desc,
       val,
       type,
-      who
+      who,
+      monthKey: monthKey(curYear, curMonth)
     });
   }
-
-  saveData(all);
 
   document.getElementById('tx-desc').value = '';
   document.getElementById('tx-val').value = '';
   document.getElementById('tx-installments').value = '1';
 
-  render();
+  loadTransactions();
 }
 
-    function delTx(i){ const all=loadData(),k=monthKey(curYear,curMonth); all[k].splice(i,1); saveData(all); render(); }
+    async function delTx(id){
+  await deleteDoc(doc(db, "transacoes", id));
+  loadTransactions();
+}
+
+window.delTx = delTx;
 
     document.addEventListener('keydown', e=>{
       if(e.key==='Enter') addTx();
     });
 
-    render();
+    loadTransactions();
   </script>
 </body>
 </html>

@@ -259,19 +259,18 @@
       const income = txs.filter(t=>t.type==='income').reduce((s,t)=>s+t.val,0);
       const expense = txs.filter(t=>t.type==='expense').reduce((s,t)=>s+t.val,0);
       const balance = income - expense;
-      const savingRate = income>0 ? Math.round((balance/income)*100) : 0;
 
       const hb = document.getElementById('hero-balance');
       hb.className = 'hero-balance '+(balance>0?'pos':balance<0?'neg':'zero');
       hb.textContent = (balance<0?'−':'')+fmt(Math.abs(balance));
       document.getElementById('hero-sub').textContent = balance>=0
-        ? (income>0 ? savingRate+'% de taxa de poupança este mês' : 'Adicione suas receitas e despesas')
+        ? 'Seu saldo está positivo este mês' : 'Adicione suas receitas e despesas')
         : 'Atenção: despesas maiores que receitas';
 
       document.getElementById('metrics').innerHTML = `
         <div class="metric green"><div class="metric-label">Receitas</div><div class="metric-value green">${fmtShort(income)}</div></div>
         <div class="metric red"><div class="metric-label">Despesas</div><div class="metric-value red">${fmtShort(expense)}</div></div>
-        <div class="metric gold"><div class="metric-label">Poupança</div><div class="metric-value gold">${savingRate}%</div></div>
+        <div class="metric gold"><div class="metric-label">Saldo</div><div class="metric-value gold">${savingRate}%</div></div>
       `;
 
       document.getElementById('tx-count').textContent = txs.length+(txs.length===1?' registro':' registros');

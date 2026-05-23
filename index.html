@@ -109,11 +109,21 @@
     .tx-amount.income { color: var(--green); }
     .tx-amount.expense { color: var(--red); }
     .del-btn {
-      background: none; border: none; cursor: pointer; color: var(--muted); font-size: 13px;
-      width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center;
-      opacity: 0; transition: all 0.12s; flex-shrink: 0;
-    }
-    .tx-item:hover .del-btn { opacity: 1; }
+  background: var(--surface2);
+  border: none;
+  cursor: pointer;
+  color: var(--text);
+  font-size: 13px;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+  transition: all 0.12s;
+  flex-shrink: 0;
+}
     .del-btn:hover { background: var(--red-bg); color: var(--red); opacity: 1; }
 
     .add-form { display: flex; flex-direction: column; gap: 10px; padding-top: 1rem; border-top: 1px solid var(--border); margin-top: 1rem; }

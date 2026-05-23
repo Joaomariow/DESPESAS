@@ -467,26 +467,34 @@ window.delTx = delTx;
 async function editTx(id, oldValue, oldType, oldWho){
 
   const novoValor = prompt('Digite o novo valor:', oldValue);
-
   if(novoValor === null) return;
 
   const val = parseFloat(novoValor.replace(',', '.'));
-
   if(isNaN(val) || val <= 0){
     alert('Valor inválido');
     return;
   }
 
-  const novoTipo = confirm('É uma RECEITA?\nOK = Receita\nCancelar = Despesa')
-    ? 'income'
-    : 'expense';
-
-  const novoResponsavel = prompt(
-    'Responsável:\nJoão Mario\nShayanne Larysa\nCasal',
-    oldWho
+  const tipoEscolha = prompt(
+    'Tipo:\n1 - Receita\n2 - Despesa',
+    oldType === 'income' ? '1' : '2'
   );
 
-  if(novoResponsavel === null) return;
+  if(tipoEscolha === null) return;
+
+  const novoTipo = tipoEscolha === '1' ? 'income' : 'expense';
+
+  const responsavelEscolha = prompt(
+    'Responsável:\n1 - João Mario\n2 - Shayanne Larysa\n3 - Casal',
+    oldWho === 'João Mario' ? '1' : oldWho === 'Shayanne Larysa' ? '2' : '3'
+  );
+
+  if(responsavelEscolha === null) return;
+
+  const novoResponsavel =
+    responsavelEscolha === '1' ? 'João Mario' :
+    responsavelEscolha === '2' ? 'Shayanne Larysa' :
+    'Casal';
 
   await updateDoc(doc(db, "transacoes", id), {
     val: val,

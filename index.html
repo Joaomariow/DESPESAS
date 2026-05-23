@@ -252,9 +252,7 @@
   </div>
 
     <script type="module">
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-
 import {
   getFirestore,
   collection,
@@ -275,25 +273,25 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-
 const db = getFirestore(app);
 
-    const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-    const PESSOAS = [
-      { key: 'João Mario',      label: 'João Mario',      cls: 'joao' },
-      { key: 'Shayanne Larysa', label: 'Shayanne Larysa', cls: 'shayanne' },
-      { key: 'Casal',           label: 'Casal',           cls: 'casal' },
-    ];
+const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
-let now = new Date(), curYear = now.getFullYear(), curMonth = now.getMonth();
+const PESSOAS = [
+  { key: 'João Mario', label: 'João Mario', cls: 'joao' },
+  { key: 'Shayanne Larysa', label: 'Shayanne Larysa', cls: 'shayanne' },
+  { key: 'Casal', label: 'Casal', cls: 'casal' },
+];
 
+let now = new Date();
+let curYear = now.getFullYear();
+let curMonth = now.getMonth();
 let txs = [];
 
 function monthKey(y,m){ return y+'-'+String(m).padStart(2,'0'); }
 
 async function loadTransactions(){
   txs = [];
-
   const querySnapshot = await getDocs(collection(db, "transacoes"));
 
   querySnapshot.forEach((docItem) => {
@@ -306,75 +304,99 @@ async function loadTransactions(){
   render();
 }
 
-function changeMonth(d){ curMonth+=d; if(curMonth<0){curMonth=11;curYear--;} if(curMonth>11){curMonth=0;curYear++;} render(); }
-function fmt(v){ return 'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function changeMonth(d){
+  curMonth += d;
+  if(curMonth < 0){ curMonth = 11; curYear--; }
+  if(curMonth > 11){ curMonth = 0; curYear++; }
+  render();
+}
+window.changeMonth = changeMonth;
+
+function fmt(v){
+  return 'R$ '+Number(v).toLocaleString('pt-BR',{
+    minimumFractionDigits:2,
+    maximumFractionDigits:2
+  });
+}
+
 function fmtShort(v){ return fmt(v); }
 
-    function render(){
+function render(){
   document.getElementById('month-label').textContent = MONTHS[curMonth]+' '+curYear;
+
   const currentKey = monthKey(curYear, curMonth);
   const monthTxs = txs.filter(t => t.monthKey === currentKey);
-      const income = monthTxs.filter(t=>t.type==='income').reduce((s,t)=>s+t.val,0);
-const expense = monthTxs.filter(t=>t.type==='expense').reduce((s,t)=>s+t.val,0);
-      const balance = income - expense;
-      const savingRate = income>0 ? Math.round((balance/income)*100) : 0;
 
-      const hb = document.getElementById('hero-balance');
-      hb.className = 'hero-balance '+(balance>0?'pos':balance<0?'neg':'zero');
-      hb.textContent = (balance<0?'−':'')+fmt(Math.abs(balance));
-      document.getElementById('hero-sub').textContent =
-  balance > 0
-    ? 'Saldo positivo este mês'
-    : balance < 0
-      ? 'Saldo negativo este mês'
-      : 'Adicione suas receitas e despesas';
+  const income = monthTxs.filter(t=>t.type==='income').reduce((s,t)=>s+t.val,0);
+  const expense = monthTxs.filter(t=>t.type==='expense').reduce((s,t)=>s+t.val,0);
+  const balance = income - expense;
 
-      document.getElementById('metrics').innerHTML = `
-  <div class="metric green"><div class="metric-label">Receitas</div><div class="metric-value green">${fmtShort(income)}</div></div>
-  <div class="metric red"><div class="metric-label">Despesas</div><div class="metric-value red">${fmtShort(expense)}</div></div>
-  <div class="metric gold"><div class="metric-label">Saldo</div><div class="metric-value gold">${fmtShort(balance)}</div></div>
-`;
+  const hb = document.getElementById('hero-balance');
+  hb.className = 'hero-balance '+(balance>0?'pos':balance<0?'neg':'zero');
+  hb.textContent = (balance<0?'−':'')+fmt(Math.abs(balance));
 
-      document.getElementById('tx-count').textContent = monthTxs.length+(monthTxs.length===1?' registro':' registros');
-      const txList = document.getElementById('tx-list');
-      txList.innerHTML = monthTxs.length===0
-        ? '<li class="tx-empty">Nenhuma transação neste mês</li>'
-        : monthTxs.slice().reverse().map((t,ri)=>{
-            const i=txs.length-1-ri;
-            return `<li class="tx-item">
-              <div class="tx-dot ${t.type}"></div>
-              <div class="tx-info"><div class="tx-desc">${t.desc}</div><div class="tx-who">${t.who}</div></div>
-              <div class="tx-amount ${t.type}">${t.type==='income'?'+':'−'}${fmt(t.val)}</div>
-              <button class="del-btn" onclick="delTx('${t.id}')" aria-label="Remover">✕</button>
-            </li>`;
-          }).join('');
+  document.getElementById('hero-sub').textContent =
+    balance > 0
+      ? 'Saldo positivo este mês'
+      : balance < 0
+        ? 'Saldo negativo este mês'
+        : 'Adicione suas receitas e despesas';
 
-      // Quadros de gastos por pessoa
-      const grid = document.getElementById('spending-grid');
-      grid.innerHTML = PESSOAS.map(p => {
-        const despesas = txs.filter(t => t.type === 'expense' && t.who === p.key);
-        const total = despesas.reduce((s,t) => s + t.val, 0);
-        const itens = despesas.length === 0
-          ? '<li class="spending-empty">Sem despesas no mês</li>'
-          : despesas.slice().reverse().map(t =>
-              `<li class="spending-item">
-                <span class="spending-item-desc">${t.desc}</span>
-                <span class="spending-item-val">−${fmt(t.val)}</span>
-              </li>`
-            ).join('');
-        return `
-          <div class="spending-card ${p.cls}">
-            <div class="spending-header">
-              <div class="spending-name">${p.label}</div>
-              <div class="spending-total ${total===0?'zero':''}">${total===0?'R$ 0,00':fmt(total)}</div>
-            </div>
-            <ul class="spending-list">${itens}</ul>
-          </div>`;
-      }).join('');
-    }
+  document.getElementById('metrics').innerHTML = `
+    <div class="metric green"><div class="metric-label">Receitas</div><div class="metric-value green">${fmtShort(income)}</div></div>
+    <div class="metric red"><div class="metric-label">Despesas</div><div class="metric-value red">${fmtShort(expense)}</div></div>
+    <div class="metric gold"><div class="metric-label">Saldo</div><div class="metric-value gold">${fmtShort(balance)}</div></div>
+  `;
 
-    async function addTx(){
+  document.getElementById('tx-count').textContent =
+    monthTxs.length+(monthTxs.length===1?' registro':' registros');
 
+  const txList = document.getElementById('tx-list');
+
+  txList.innerHTML = monthTxs.length===0
+    ? '<li class="tx-empty">Nenhuma transação neste mês</li>'
+    : monthTxs.slice().reverse().map((t)=>`
+        <li class="tx-item">
+          <div class="tx-dot ${t.type}"></div>
+          <div class="tx-info">
+            <div class="tx-desc">${t.desc}</div>
+            <div class="tx-who">${t.who}</div>
+          </div>
+          <div class="tx-amount ${t.type}">${t.type==='income'?'+':'−'}${fmt(t.val)}</div>
+          <button class="del-btn" onclick="delTx('${t.id}')" aria-label="Remover">✕</button>
+        </li>
+      `).join('');
+
+  const grid = document.getElementById('spending-grid');
+
+  grid.innerHTML = PESSOAS.map(p => {
+    const despesas = monthTxs.filter(t => t.type === 'expense' && t.who === p.key);
+    const total = despesas.reduce((s,t) => s + t.val, 0);
+
+    const itens = despesas.length === 0
+      ? '<li class="spending-empty">Sem despesas no mês</li>'
+      : despesas.slice().reverse().map(t => `
+          <li class="spending-item">
+            <span class="spending-item-desc">${t.desc}</span>
+            <span class="spending-item-val">−${fmt(t.val)}</span>
+          </li>
+        `).join('');
+
+    return `
+      <div class="spending-card ${p.cls}">
+        <div class="spending-header">
+          <div class="spending-name">${p.label}</div>
+          <div class="spending-total ${total===0?'zero':''}">
+            ${total===0?'R$ 0,00':fmt(total)}
+          </div>
+        </div>
+        <ul class="spending-list">${itens}</ul>
+      </div>
+    `;
+  }).join('');
+}
+
+async function addTx(){
   const desc = document.getElementById('tx-desc').value.trim();
   const val = parseFloat(document.getElementById('tx-val').value);
   const type = document.getElementById('tx-type').value;
@@ -387,11 +409,9 @@ const expense = monthTxs.filter(t=>t.type==='expense').reduce((s,t)=>s+t.val,0);
   }
 
   if(type === 'expense' && installments > 1){
-
     const installmentValue = Number((val / installments).toFixed(2));
 
     for(let i = 0; i < installments; i++){
-
       let month = curMonth + i;
       let year = curYear;
 
@@ -408,9 +428,7 @@ const expense = monthTxs.filter(t=>t.type==='expense').reduce((s,t)=>s+t.val,0);
         monthKey: monthKey(year, month)
       });
     }
-
   } else {
-
     await addDoc(collection(db, "transacoes"), {
       desc,
       val,
@@ -426,19 +444,19 @@ const expense = monthTxs.filter(t=>t.type==='expense').reduce((s,t)=>s+t.val,0);
 
   loadTransactions();
 }
+window.addTx = addTx;
 
-    async function delTx(id){
+async function delTx(id){
   await deleteDoc(doc(db, "transacoes", id));
   loadTransactions();
 }
-
 window.delTx = delTx;
 
-    document.addEventListener('keydown', e=>{
-      if(e.key==='Enter') addTx();
-    });
+document.addEventListener('keydown', e=>{
+  if(e.key==='Enter') addTx();
+});
 
-    loadTransactions();
-  </script>
+loadTransactions();
+</script>
 </body>
 </html>

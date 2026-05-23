@@ -259,6 +259,7 @@ import {
   addDoc,
   getDocs,
   deleteDoc,
+  updateDoc,
   doc
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
@@ -363,7 +364,8 @@ function render(){
             <div class="tx-who">${t.who}</div>
           </div>
           <div class="tx-amount ${t.type}">${t.type==='income'?'+':'−'}${fmt(t.val)}</div>
-          <button class="del-btn" onclick="delTx('${t.id}')" aria-label="Remover">✕</button>
+          <button class="del-btn" onclick="editTx('${t.id}', ${t.val})" aria-label="Editar">✎</button>
+<button class="del-btn" onclick="delTx('${t.id}')" aria-label="Remover">✕</button>
         </li>
       `).join('');
 
@@ -451,6 +453,28 @@ async function delTx(id){
   loadTransactions();
 }
 window.delTx = delTx;
+
+async function editTx(id, oldValue){
+
+  const novoValor = prompt('Digite o novo valor:', oldValue);
+
+  if(novoValor === null) return;
+
+  const val = parseFloat(novoValor.replace(',', '.'));
+
+  if(isNaN(val) || val <= 0){
+    alert('Valor inválido');
+    return;
+  }
+
+  await updateDoc(doc(db, "transacoes", id), {
+    val: val
+  });
+
+  loadTransactions();
+}
+
+window.editTx = editTx;
 
 document.addEventListener('keydown', e=>{
   if(e.key==='Enter') addTx();

@@ -470,26 +470,23 @@ async function editTx(id, oldValue, oldType, oldWho){
 
   if(novoValor === null) return;
 
-  const novoTipo = prompt(
-    'Digite income para Receita ou expense para Despesa:',
-    oldType
-  );
-
-  if(novoTipo === null) return;
-
-  const novoResponsavel = prompt(
-    'Responsável:',
-    oldWho
-  );
-
-  if(novoResponsavel === null) return;
-
   const val = parseFloat(novoValor.replace(',', '.'));
 
   if(isNaN(val) || val <= 0){
     alert('Valor inválido');
     return;
   }
+
+  const novoTipo = confirm('É uma RECEITA?\nOK = Receita\nCancelar = Despesa')
+    ? 'income'
+    : 'expense';
+
+  const novoResponsavel = prompt(
+    'Responsável:\nJoão Mario\nShayanne Larysa\nCasal',
+    oldWho
+  );
+
+  if(novoResponsavel === null) return;
 
   await updateDoc(doc(db, "transacoes", id), {
     val: val,

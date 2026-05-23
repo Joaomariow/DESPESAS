@@ -280,9 +280,12 @@
       const hb = document.getElementById('hero-balance');
       hb.className = 'hero-balance '+(balance>0?'pos':balance<0?'neg':'zero');
       hb.textContent = (balance<0?'−':'')+fmt(Math.abs(balance));
-      document.getElementById('hero-sub').textContent = balance>=0
-        ? (income>0 ? savingRate+'% de taxa de poupança este mês' : 'Adicione suas receitas e despesas')
-        : 'Atenção: despesas maiores que receitas';
+      document.getElementById('hero-sub').textContent =
+  balance > 0
+    ? 'Saldo positivo este mês'
+    : balance < 0
+      ? 'Saldo negativo este mês'
+      : 'Adicione suas receitas e despesas';
 
       document.getElementById('metrics').innerHTML = `
   <div class="metric green"><div class="metric-label">Receitas</div><div class="metric-value green">${fmtShort(income)}</div></div>

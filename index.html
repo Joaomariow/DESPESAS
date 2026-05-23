@@ -267,7 +267,7 @@
     function getMonthData(){ let k=monthKey(curYear,curMonth),all=loadData(); if(!all[k])all[k]=[]; return all[k]; }
     function changeMonth(d){ curMonth+=d; if(curMonth<0){curMonth=11;curYear--;} if(curMonth>11){curMonth=0;curYear++;} render(); }
     function fmt(v){ return 'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
-    function fmtShort(v){ if(v>=1000000) return 'R$ '+(v/1000000).toFixed(1)+'M'; if(v>=1000) return 'R$ '+(v/1000).toFixed(1)+'k'; return fmt(v); }
+    function fmtShort(v){ return fmt(v); }
 
     function render(){
       document.getElementById('month-label').textContent = MONTHS[curMonth]+' '+curYear;

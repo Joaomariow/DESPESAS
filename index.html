@@ -374,7 +374,7 @@ function render(){
             <div class="tx-who">${t.who}</div>
           </div>
           <div class="tx-amount ${t.type}">${t.type==='income'?'+':'−'}${fmt(t.val)}</div>
-          <button class="del-btn" onclick="editTx('${t.id}', ${t.val})" aria-label="Editar">✎</button>
+          <button class="del-btn" onclick="editTx('${t.id}', ${t.val}, '${t.type}', '${t.who}')" aria-label="Editar">✎</button>
 <button class="del-btn" onclick="delTx('${t.id}')" aria-label="Remover">✕</button>
         </li>
       `).join('');
@@ -464,11 +464,25 @@ async function delTx(id){
 }
 window.delTx = delTx;
 
-async function editTx(id, oldValue){
+async function editTx(id, oldValue, oldType, oldWho){
 
   const novoValor = prompt('Digite o novo valor:', oldValue);
 
   if(novoValor === null) return;
+
+  const novoTipo = prompt(
+    'Digite income para Receita ou expense para Despesa:',
+    oldType
+  );
+
+  if(novoTipo === null) return;
+
+  const novoResponsavel = prompt(
+    'Responsável:',
+    oldWho
+  );
+
+  if(novoResponsavel === null) return;
 
   const val = parseFloat(novoValor.replace(',', '.'));
 
@@ -478,7 +492,9 @@ async function editTx(id, oldValue){
   }
 
   await updateDoc(doc(db, "transacoes", id), {
-    val: val
+    val: val,
+    type: novoTipo,
+    who: novoResponsavel
   });
 
   loadTransactions();

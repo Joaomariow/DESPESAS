@@ -215,17 +215,33 @@
           <input type="number" id="tx-val" placeholder="Valor R$" min="0" step="0.01" style="flex:1;min-width:90px" />
         </div>
         <div class="form-row">
-          <select id="tx-type">
-            <option value="income">💰 Receita</option>
-            <option value="expense" selected>💸 Despesa</option>
-          </select>
-          <select id="tx-who">
-            <option value="João Mario">👤 João Mario</option>
-            <option value="Shayanne Larysa">👤 Shayanne Larysa</option>
-            <option value="Casal">👫 Casal</option>
-          </select>
-          <button class="btn" onclick="addTx()">+ Adicionar</button>
-        </div>
+
+  <select id="tx-type">
+    <option value="income">💰 Receita</option>
+    <option value="expense" selected>💸 Despesa</option>
+  </select>
+
+  <select id="tx-who">
+    <option value="João Mario">👤 João Mario</option>
+    <option value="Shayanne Larysa">👤 Shayanne Larysa</option>
+    <option value="Casal">👫 Casal</option>
+  </select>
+
+  <select id="tx-installments">
+    <option value="1">1x</option>
+    <option value="2">2x</option>
+    <option value="3">3x</option>
+    <option value="4">4x</option>
+    <option value="5">5x</option>
+    <option value="6">6x</option>
+    <option value="10">10x</option>
+    <option value="11">11x</option>
+    <option value="12">12x</option>
+  </select>
+
+  <button class="btn" onclick="addTx()">+ Adicionar</button>
+
+</div>
       </div>
     </div>
 

@@ -117,21 +117,21 @@
     .tx-amount.income { color: var(--green); }
     .tx-amount.expense { color: var(--red); }
     .del-btn {
-  background: var(--surface2);
-  border: none;
-  cursor: pointer;
-  color: var(--text);
-  font-size: 13px;
-  width: 24px;
-  height: 24px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 1;
-  transition: all 0.12s;
-  flex-shrink: 0;
-}
+      background: var(--surface2);
+      border: none;
+      cursor: pointer;
+      color: var(--text);
+      font-size: 13px;
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 1;
+      transition: all 0.12s;
+      flex-shrink: 0;
+    }
     .del-btn:hover { background: var(--red-bg); color: var(--red); opacity: 1; }
 
     .add-form { display: flex; flex-direction: column; gap: 10px; padding-top: 1rem; border-top: 1px solid var(--border); margin-top: 1rem; }
@@ -154,7 +154,6 @@
     .btn:hover { background: var(--accent2); transform: translateY(-1px); }
     .btn:active { transform: translateY(0); }
 
-    /* Quadros de gastos por pessoa */
     .spending-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -218,7 +217,6 @@
 
     <div class="metrics" id="metrics"></div>
 
-    <!-- Transações -->
     <div class="card">
       <div class="card-header">
         <span class="card-title">Transações</span>
@@ -233,43 +231,37 @@
           <input type="number" id="tx-val" placeholder="Valor R$" min="0" step="0.01" style="flex:1;min-width:90px" />
         </div>
         <div class="form-row">
-
-  <select id="tx-type">
-    <option value="income">💰 Receita</option>
-    <option value="expense" selected>💸 Despesa</option>
-  </select>
-
-  <select id="tx-who">
-    <option value="João Mario">👤 João Mario</option>
-    <option value="Shayanne Larysa">👤 Shayanne Larysa</option>
-    <option value="Casal">👫 Casal</option>
-  </select>
-
-  <select id="tx-installments">
-    <option value="1">1x</option>
-    <option value="2">2x</option>
-    <option value="3">3x</option>
-    <option value="4">4x</option>
-    <option value="5">5x</option>
-    <option value="6">6x</option>
-    <option value="10">10x</option>
-    <option value="11">11x</option>
-    <option value="12">12x</option>
-  </select>
-
-  <button class="btn" onclick="addTx()">+ Adicionar</button>
-
-</div>
+          <select id="tx-type">
+            <option value="income">💰 Receita</option>
+            <option value="expense" selected>💸 Despesa</option>
+          </select>
+          <select id="tx-who">
+            <option value="João Mario">👤 João Mario</option>
+            <option value="Shayanne Larysa">👤 Shayanne Larysa</option>
+            <option value="Casal">👫 Casal</option>
+          </select>
+          <select id="tx-installments">
+            <option value="1">1x</option>
+            <option value="2">2x</option>
+            <option value="3">3x</option>
+            <option value="4">4x</option>
+            <option value="5">5x</option>
+            <option value="6">6x</option>
+            <option value="10">10x</option>
+            <option value="11">11x</option>
+            <option value="12">12x</option>
+          </select>
+          <button class="btn" onclick="addTx()">+ Adicionar</button>
+        </div>
       </div>
     </div>
 
-    <!-- Gastos por pessoa -->
     <div class="spending-grid" id="spending-grid"></div>
 
     <footer>Dados salvos no navegador · Finanças do Casal</footer>
   </div>
 
-    <script type="module">
+  <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
 import {
   getFirestore,
@@ -312,14 +304,9 @@ function monthKey(y,m){ return y+'-'+String(m).padStart(2,'0'); }
 async function loadTransactions(){
   txs = [];
   const querySnapshot = await getDocs(collection(db, "transacoes"));
-
   querySnapshot.forEach((docItem) => {
-    txs.push({
-      id: docItem.id,
-      ...docItem.data()
-    });
+    txs.push({ id: docItem.id, ...docItem.data() });
   });
-
   render();
 }
 
@@ -332,13 +319,8 @@ function changeMonth(d){
 window.changeMonth = changeMonth;
 
 function fmt(v){
-  return 'R$ '+Number(v).toLocaleString('pt-BR',{
-    minimumFractionDigits:2,
-    maximumFractionDigits:2
-  });
+  return 'R$ '+Number(v).toLocaleString('pt-BR',{ minimumFractionDigits:2, maximumFractionDigits:2 });
 }
-
-function fmtShort(v){ return fmt(v); }
 
 function render(){
   document.getElementById('month-label').textContent = MONTHS[curMonth]+' '+curYear;
@@ -355,23 +337,20 @@ function render(){
   hb.textContent = (balance<0?'−':'')+fmt(Math.abs(balance));
 
   document.getElementById('hero-sub').textContent =
-    balance > 0
-      ? 'Saldo positivo este mês'
-      : balance < 0
-        ? 'Saldo negativo este mês'
-        : 'Adicione suas receitas e despesas';
+    balance > 0 ? 'Saldo positivo este mês' :
+    balance < 0 ? 'Saldo negativo este mês' :
+    'Adicione suas receitas e despesas';
 
   document.getElementById('metrics').innerHTML = `
-    <div class="metric green"><div class="metric-label">Receitas</div><div class="metric-value green">${fmtShort(income)}</div></div>
-    <div class="metric red"><div class="metric-label">Despesas</div><div class="metric-value red">${fmtShort(expense)}</div></div>
-    <div class="metric gold"><div class="metric-label">Saldo</div><div class="metric-value gold">${fmtShort(balance)}</div></div>
+    <div class="metric green"><div class="metric-label">Receitas</div><div class="metric-value green">${fmt(income)}</div></div>
+    <div class="metric red"><div class="metric-label">Despesas</div><div class="metric-value red">${fmt(expense)}</div></div>
+    <div class="metric gold"><div class="metric-label">Saldo</div><div class="metric-value gold">${fmt(balance)}</div></div>
   `;
 
   document.getElementById('tx-count').textContent =
     monthTxs.length+(monthTxs.length===1?' registro':' registros');
 
   const txList = document.getElementById('tx-list');
-
   txList.innerHTML = monthTxs.length===0
     ? '<li class="tx-empty">Nenhuma transação neste mês</li>'
     : monthTxs.slice().reverse().map((t)=>`
@@ -383,16 +362,14 @@ function render(){
           </div>
           <div class="tx-amount ${t.type}">${t.type==='income'?'+':'−'}${fmt(t.val)}</div>
           <button class="del-btn" onclick="editTx('${t.id}', ${t.val}, '${t.type}', '${t.who}')" aria-label="Editar">✎</button>
-<button class="del-btn" onclick="delTx('${t.id}')" aria-label="Remover">✕</button>
+          <button class="del-btn" onclick="delTx('${t.id}')" aria-label="Remover">✕</button>
         </li>
       `).join('');
 
   const grid = document.getElementById('spending-grid');
-
   grid.innerHTML = PESSOAS.map(p => {
     const despesas = monthTxs.filter(t => t.type === 'expense' && t.who === p.key);
     const total = despesas.reduce((s,t) => s + t.val, 0);
-
     const itens = despesas.length === 0
       ? '<li class="spending-empty">Sem despesas no mês</li>'
       : despesas.slice().reverse().map(t => `
@@ -401,18 +378,14 @@ function render(){
             <span class="spending-item-val">−${fmt(t.val)}</span>
           </li>
         `).join('');
-
     return `
       <div class="spending-card ${p.cls}">
         <div class="spending-header">
           <div class="spending-name">${p.label}</div>
-          <div class="spending-total ${total===0?'zero':''}">
-            ${total===0?'R$ 0,00':fmt(total)}
-          </div>
+          <div class="spending-total ${total===0?'zero':''}">${total===0?'R$ 0,00':fmt(total)}</div>
         </div>
         <ul class="spending-list">${itens}</ul>
-      </div>
-    `;
+      </div>`;
   }).join('');
 }
 
@@ -429,20 +402,14 @@ async function addTx(){
   }
 
   if(type === 'expense' && installments > 1){
-    const installmentValue = Number((val / installments).toFixed(2));
-
+    // Repete o mesmo valor em cada mês, sem dividir
     for(let i = 0; i < installments; i++){
       let month = curMonth + i;
       let year = curYear;
-
-      while(month > 11){
-        month -= 12;
-        year++;
-      }
-
+      while(month > 11){ month -= 12; year++; }
       await addDoc(collection(db, "transacoes"), {
         desc: `${desc} (${i + 1}/${installments})`,
-        val: installmentValue,
+        val: val,
         type: 'expense',
         who,
         monthKey: monthKey(year, month)
@@ -450,10 +417,7 @@ async function addTx(){
     }
   } else {
     await addDoc(collection(db, "transacoes"), {
-      desc,
-      val,
-      type,
-      who,
+      desc, val, type, who,
       monthKey: monthKey(curYear, curMonth)
     });
   }
@@ -473,46 +437,32 @@ async function delTx(id){
 window.delTx = delTx;
 
 async function editTx(id, oldValue, oldType, oldWho){
-
   const novoValor = prompt('Digite o novo valor:', oldValue);
   if(novoValor === null) return;
 
   const val = parseFloat(novoValor.replace(',', '.'));
-  if(isNaN(val) || val <= 0){
-    alert('Valor inválido');
-    return;
-  }
+  if(isNaN(val) || val <= 0){ alert('Valor inválido'); return; }
 
-  const tipoEscolha = prompt(
-    'Tipo:\n1 - Receita\n2 - Despesa',
-    oldType === 'income' ? '1' : '2'
-  );
-
+  const tipoEscolha = prompt('Tipo:\n1 - Receita\n2 - Despesa', oldType === 'income' ? '1' : '2');
   if(tipoEscolha === null) return;
-
   const novoTipo = tipoEscolha === '1' ? 'income' : 'expense';
 
   const responsavelEscolha = prompt(
     'Responsável:\n1 - João Mario\n2 - Shayanne Larysa\n3 - Casal',
     oldWho === 'João Mario' ? '1' : oldWho === 'Shayanne Larysa' ? '2' : '3'
   );
-
   if(responsavelEscolha === null) return;
 
   const novoResponsavel =
     responsavelEscolha === '1' ? 'João Mario' :
-    responsavelEscolha === '2' ? 'Shayanne Larysa' :
-    'Casal';
+    responsavelEscolha === '2' ? 'Shayanne Larysa' : 'Casal';
 
   await updateDoc(doc(db, "transacoes", id), {
-    val: val,
-    type: novoTipo,
-    who: novoResponsavel
+    val, type: novoTipo, who: novoResponsavel
   });
 
   loadTransactions();
 }
-
 window.editTx = editTx;
 
 document.addEventListener('keydown', e=>{
@@ -520,6 +470,6 @@ document.addEventListener('keydown', e=>{
 });
 
 loadTransactions();
-</script>
+  </script>
 </body>
 </html>
